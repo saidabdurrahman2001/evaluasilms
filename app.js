@@ -59,6 +59,7 @@ function mobileRenderList(data, day, month, query) {
     .sort((a, b) => {
       const da = toISODate(a);
       const db = toISODate(b);
+      // Oldest first
       if (da !== db) return da.localeCompare(db);
       return String(a.module_name || '').localeCompare(String(b.module_name || ''));
     });
@@ -100,7 +101,7 @@ function mobileRenderList(data, day, month, query) {
 }
 
 function render() {
-  const data = window.LMS_SCHEDULE_DATA || [];
+  const data = (window.LMS_SCHEDULE_DATA || []).slice();
   const countEl = document.getElementById('rowCount');
   countEl.textContent = `${data.length.toLocaleString()} sesi`;
 
@@ -118,6 +119,15 @@ function render() {
 
   const tbody = document.querySelector('#scheduleTable tbody');
   tbody.innerHTML = '';
+
+  // Lock default order: newest date first (year-month-day), then module name.
+  data.sort((a, b) => {
+    const da = toISODate(a);
+    const db = toISODate(b);
+    // Oldest first
+    if (da !== db) return da.localeCompare(db);
+    return String(a.module_name || '').localeCompare(String(b.module_name || ''));
+  });
 
   for (const r of data) {
     const tr = document.createElement('tr');
@@ -144,8 +154,8 @@ function render() {
   const table = new DataTable('#scheduleTable', {
     pageLength: 25,
     lengthMenu: [10, 25, 50, 100],
-    // Default: tanggal paling baru dulu (pakai kolom ISO tersembunyi)
-    order: [[3, 'desc'], [1, 'asc']],
+    // Disable sorting by clicking headers
+    ordering: false,
     autoWidth: false,
     columnDefs: [{ targets: [3], visible: false, searchable: false }],
     dom:

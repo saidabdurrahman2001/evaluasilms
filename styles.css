@@ -103,6 +103,11 @@ table.dataTable thead th.sorting_desc_disabled::after{
   content: none !important;
 }
 
+/* Prevent header from looking clickable */
+table.dataTable thead th{
+  cursor: default !important;
+}
+
 table.dataTable tbody td{
   border-top: 1px solid rgba(15, 23, 42, 0.08) !important;
 }
