@@ -216,4 +216,16 @@ table.dataTable tbody td{
   background-color: rgba(31, 74, 168, 0.04) !important;
 }
 
+/* Sticky table header (freeze) */
+.table-scroll{
+  max-height: 70vh;
+  overflow: auto;
+}
+.table-scroll thead th{
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  background: rgba(255,255,255,0.95) !important;
+}
+
 
