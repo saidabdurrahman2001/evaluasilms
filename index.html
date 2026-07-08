@@ -58,13 +58,18 @@
               <option value="">Semua</option>
             </select>
           </div>
+          <div class="col-12 col-md-4 col-lg-3 d-md-none">
+            <label class="form-label subtle mb-1">Cari (mobile)</label>
+            <input id="mobileSearch" class="form-control" placeholder="Cari modul / Open ID…" />
+          </div>
           <div class="col-12 col-lg-6 d-flex justify-content-lg-end">
             <button id="btnReset" class="btn btn-outline-primary w-100 w-lg-auto">Reset filter</button>
           </div>
         </div>
 
         <div class="mt-4">
-          <div class="table-responsive">
+          <!-- Desktop/tablet -->
+          <div class="table-responsive d-none d-md-block">
             <table id="scheduleTable" class="table table-hover align-middle" style="width: 100%">
               <thead>
                 <tr>
@@ -77,6 +82,17 @@
               <tbody></tbody>
             </table>
           </div>
+
+          <!-- Mobile/cards -->
+          <div class="d-md-none">
+            <div class="d-flex align-items-center justify-content-between mb-2">
+              <div class="subtle" style="font-size: 12px;">
+                Menampilkan <span id="mobileShown">0</span> dari <span id="mobileTotal">0</span>
+              </div>
+            </div>
+            <div id="mobileList" class="mobile-list"></div>
+          </div>
+
           <div class="subtle mt-2" style="font-size: 12px;">
             Catatan: tombol “Buka evaluasi” membuka halaman BI LMS berdasarkan <code>open_id</code> di tab baru.
           </div>

@@ -113,6 +113,61 @@ table.dataTable tbody td{
   white-space: nowrap;
 }
 
+.mobile-list{
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.mobile-card{
+  background: rgba(255,255,255,0.88);
+  border: 1px solid rgba(15, 23, 42, 0.10);
+  border-radius: 16px;
+  padding: 14px 14px;
+  box-shadow: 0 12px 32px rgba(15,23,42,0.08);
+}
+
+.mobile-meta{
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.mobile-title{
+  font-weight: 700;
+  line-height: 1.25;
+  margin: 0;
+  font-size: 15px;
+}
+
+.mobile-id{
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-size: 12px;
+  color: rgba(15, 23, 42, 0.65);
+}
+
+.mobile-actions{
+  margin-top: 10px;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+}
+
+.btn-mobile{
+  width: 100%;
+}
+
+@media (max-width: 575.98px){
+  .glass{
+    padding: 18px !important;
+  }
+  .container{
+    padding-left: 14px;
+    padding-right: 14px;
+  }
+}
+
 .brand-mark{
   background: rgba(31, 74, 168, 0.10);
   border: 1px solid rgba(31, 74, 168, 0.16);

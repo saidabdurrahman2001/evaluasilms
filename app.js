@@ -38,6 +38,67 @@ function toISODate(r) {
   return `${y}-${mm}-${dd}`;
 }
 
+function matchesQuery(row, q) {
+  if (!q) return true;
+  const hay = `${row.open_id} ${row.module_name} ${row.date_raw} ${row.day_name} ${row.month} ${row.year}`.toLowerCase();
+  return hay.includes(q);
+}
+
+function mobileRenderList(data, day, month, query) {
+  const list = document.getElementById('mobileList');
+  const shownEl = document.getElementById('mobileShown');
+  const totalEl = document.getElementById('mobileTotal');
+  if (!list || !shownEl || !totalEl) return;
+
+  const q = String(query || '').trim().toLowerCase();
+  const filtered = data
+    .filter(r => (day ? String(r.day_name || '').toUpperCase() === day : true))
+    .filter(r => (month ? String(r.month || '').toUpperCase() === month : true))
+    .filter(r => matchesQuery(r, q))
+    .slice()
+    .sort((a, b) => {
+      const da = toISODate(a);
+      const db = toISODate(b);
+      if (da !== db) return da.localeCompare(db);
+      return String(a.module_name || '').localeCompare(String(b.module_name || ''));
+    });
+
+  totalEl.textContent = String(data.length);
+  shownEl.textContent = String(filtered.length);
+
+  list.innerHTML = '';
+  if (filtered.length === 0) {
+    const empty = document.createElement('div');
+    empty.className = 'subtle';
+    empty.style.fontSize = '13px';
+    empty.textContent = 'Tidak ada hasil.';
+    list.appendChild(empty);
+    return;
+  }
+
+  for (const r of filtered) {
+    const card = document.createElement('div');
+    card.className = 'mobile-card';
+
+    const datePretty = r.date_raw || [r.day_name, r.day, r.month, r.year].filter(Boolean).join(' ');
+
+    card.innerHTML = `
+      <div class="mobile-meta">
+        <div class="mobile-id">Open ID: ${escapeHtml(r.open_id)}</div>
+        <div><span class="badge badge-soft">${escapeHtml(datePretty)}</span></div>
+      </div>
+      <p class="mobile-title mt-2">${escapeHtml(r.module_name)}</p>
+      <div class="mobile-actions">
+        <a class="btn btn-outline-primary btn-mobile" href="${escapeAttr(r.link)}" target="_blank" rel="noopener noreferrer">
+          Buka evaluasi
+        </a>
+      </div>
+    `;
+
+    list.appendChild(card);
+  }
+}
+
 function render() {
   const data = window.LMS_SCHEDULE_DATA || [];
   const countEl = document.getElementById('rowCount');
@@ -45,6 +106,7 @@ function render() {
 
   const daySelect = document.getElementById('filterDay');
   const monthSelect = document.getElementById('filterMonth');
+  const mobileSearch = document.getElementById('mobileSearch');
 
   // Order days Monday..Sunday
   const presentDays = new Set(data.map(r => String(r.day_name || '').toUpperCase()).filter(Boolean));
@@ -104,18 +166,26 @@ function render() {
     const dateNeedles = [day, month].filter(Boolean).join(' ');
     table.column(2).search(dateNeedles);
     table.draw();
+
+    mobileRenderList(data, day, month, mobileSearch?.value || '');
   }
 
   daySelect.addEventListener('change', applyFilters);
   monthSelect.addEventListener('change', applyFilters);
+  mobileSearch?.addEventListener('input', applyFilters);
 
   document.getElementById('btnReset').addEventListener('click', () => {
     daySelect.value = '';
     monthSelect.value = '';
+    if (mobileSearch) mobileSearch.value = '';
     table.search('');
     table.columns().search('');
     table.draw();
+    mobileRenderList(data, '', '', '');
   });
+
+  // Initial mobile render
+  mobileRenderList(data, daySelect.value, monthSelect.value, mobileSearch?.value || '');
 }
 
 function escapeHtml(s) {
