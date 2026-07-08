@@ -1,0 +1,132 @@
+:root{
+  --bg: #f5f8ff;
+  --ink: #0f172a;
+  --muted: rgba(15, 23, 42, 0.62);
+  --card: rgba(255,255,255,0.78);
+  --card-border: rgba(15, 23, 42, 0.10);
+  --bi-blue: #1f4aa8;
+  --bi-blue-2: #2a6bd6;
+  --ring: rgba(31, 74, 168, 0.22);
+}
+
+html, body {
+  height: 100%;
+}
+
+body{
+  background:
+    radial-gradient(900px 520px at 15% 0%, rgba(31,74,168,0.14), transparent 55%),
+    radial-gradient(900px 520px at 95% 10%, rgba(42,107,214,0.12), transparent 60%),
+    radial-gradient(900px 520px at 50% 95%, rgba(31,74,168,0.10), transparent 60%),
+    var(--bg);
+  color: var(--ink);
+}
+
+.glass{
+  background: var(--card);
+  border: 1px solid var(--card-border);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-radius: 18px;
+  box-shadow: 0 20px 60px rgba(15,23,42,0.10);
+}
+
+.brand{
+  letter-spacing: .2px;
+}
+
+.subtle{
+  color: var(--muted);
+}
+
+.form-control, .form-select{
+  background: rgba(255,255,255,0.92);
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  color: var(--ink);
+}
+
+.form-control:focus, .form-select:focus{
+  background: #ffffff;
+  border-color: rgba(31, 74, 168, 0.45);
+  box-shadow: 0 0 0 .25rem var(--ring);
+  color: var(--ink);
+}
+
+.form-control::placeholder{
+  color: rgba(15, 23, 42, 0.40);
+}
+
+.btn-outline-primary{
+  border-color: rgba(31, 74, 168, 0.35);
+  color: rgba(31, 74, 168, 0.92);
+  background: rgba(255,255,255,0.85);
+}
+.btn-outline-primary:hover{
+  border-color: rgba(31, 74, 168, 0.45);
+  color: rgba(31, 74, 168, 1);
+  background: rgba(31, 74, 168, 0.06);
+}
+
+table.dataTable{
+  color: var(--ink) !important;
+}
+
+table.dataTable thead th{
+  border-bottom: 1px solid rgba(15, 23, 42, 0.12) !important;
+  color: rgba(15, 23, 42, 0.85) !important;
+}
+
+table.dataTable tbody td{
+  border-top: 1px solid rgba(15, 23, 42, 0.08) !important;
+}
+
+.dataTables_wrapper .dataTables_filter input,
+.dataTables_wrapper .dataTables_length select{
+  background: rgba(255,255,255,0.92) !important;
+  border: 1px solid rgba(15, 23, 42, 0.12) !important;
+  color: var(--ink) !important;
+}
+
+.dataTables_wrapper .dataTables_info,
+.dataTables_wrapper .dataTables_paginate{
+  color: rgba(15, 23, 42, 0.62) !important;
+}
+
+.page-link{
+  background: rgba(255,255,255,0.90) !important;
+  border-color: rgba(15, 23, 42, 0.10) !important;
+  color: rgba(15, 23, 42, 0.75) !important;
+}
+.page-item.active .page-link{
+  background: rgba(31, 74, 168, 0.85) !important;
+  border-color: rgba(31, 74, 168, 0.85) !important;
+  color: #ffffff !important;
+}
+
+.badge-soft{
+  background: rgba(31, 74, 168, 0.06);
+  border: 1px solid rgba(31, 74, 168, 0.14);
+  color: rgba(31, 74, 168, 0.92);
+}
+
+.link-btn{
+  white-space: nowrap;
+}
+
+.brand-mark{
+  background: rgba(31, 74, 168, 0.10);
+  border: 1px solid rgba(31, 74, 168, 0.16);
+  color: rgba(31, 74, 168, 0.95);
+}
+
+.hr-soft{
+  border-color: rgba(15, 23, 42, 0.10);
+  opacity: 1;
+}
+
+/* Bootstrap override for better contrast on light */
+.table-hover > tbody > tr:hover > *{
+  background-color: rgba(31, 74, 168, 0.04) !important;
+}
+
+
