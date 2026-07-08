@@ -123,11 +123,13 @@ function render() {
     const tr = document.createElement('tr');
 
     const datePretty = r.date_raw || [r.day_name, r.day, r.month, r.year].filter(Boolean).join(' ');
+    const iso = toISODate(r);
 
     tr.innerHTML = `
       <td class="text-monospace">${r.open_id}</td>
       <td>${escapeHtml(r.module_name)}</td>
       <td><span class="badge badge-soft">${escapeHtml(datePretty)}</span></td>
+      <td class="d-none">${escapeHtml(iso)}</td>
       <td class="text-end">
         <a class="btn btn-sm btn-outline-primary link-btn" href="${escapeAttr(r.link)}" target="_blank" rel="noopener noreferrer">
           Buka evaluasi
@@ -142,8 +144,10 @@ function render() {
   const table = new DataTable('#scheduleTable', {
     pageLength: 25,
     lengthMenu: [10, 25, 50, 100],
-    order: [[2, 'asc'], [1, 'asc']],
+    // Default: tanggal paling baru dulu (pakai kolom ISO tersembunyi)
+    order: [[3, 'desc'], [1, 'asc']],
     autoWidth: false,
+    columnDefs: [{ targets: [3], visible: false, searchable: false }],
     dom:
       "<'row align-items-center g-3'<'col-md-6'l><'col-md-6'f>>" +
       "<'row mt-3'<'col-12'tr>>" +
