@@ -59,8 +59,12 @@ function mobileRenderList(data, day, month, query) {
     .sort((a, b) => {
       const da = toISODate(a);
       const db = toISODate(b);
-      // Oldest first
       if (da !== db) return da.localeCompare(db);
+
+      const ia = Number(a.open_id);
+      const ib = Number(b.open_id);
+      if (ia !== ib) return ia - ib;
+
       return String(a.module_name || '').localeCompare(String(b.module_name || ''));
     });
 
@@ -120,12 +124,16 @@ function render() {
   const tbody = document.querySelector('#scheduleTable tbody');
   tbody.innerHTML = '';
 
-  // Lock default order: newest date first (year-month-day), then module name.
+  // Lock default order: date (oldest -> newest), then Open ID, then module name.
   data.sort((a, b) => {
     const da = toISODate(a);
     const db = toISODate(b);
-    // Oldest first
     if (da !== db) return da.localeCompare(db);
+
+    const ia = Number(a.open_id);
+    const ib = Number(b.open_id);
+    if (ia !== ib) return ia - ib;
+
     return String(a.module_name || '').localeCompare(String(b.module_name || ''));
   });
 
