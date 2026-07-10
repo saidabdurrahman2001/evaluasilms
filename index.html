@@ -58,9 +58,13 @@
               <option value="">Semua</option>
             </select>
           </div>
+          <div class="col-6 col-md-4 col-lg-3">
+            <label class="form-label subtle mb-1">Filter tanggal</label>
+            <input id="filterDate" type="date" class="form-control" />
+          </div>
           <div class="col-12 col-md-4 col-lg-3 d-md-none">
             <label class="form-label subtle mb-1">Cari (mobile)</label>
-            <input id="mobileSearch" class="form-control" placeholder="Cari modul / Open ID…" />
+            <input id="mobileSearch" class="form-control" placeholder="Cari no / modul / narasumber…" />
           </div>
           <div class="col-12 col-lg-6 d-flex justify-content-lg-end">
             <button id="btnReset" class="btn btn-outline-primary w-100 w-lg-auto">Reset filter</button>
@@ -73,9 +77,12 @@
             <table id="scheduleTable" class="table table-hover align-middle" style="width: 100%">
               <thead>
                 <tr>
-                  <th style="width: 110px">Open ID</th>
+                  <th style="width: 56px">No</th>
+                  <th style="width: 96px">Open ID</th>
                   <th>Modul / Sesi</th>
-                  <th style="width: 260px">Tanggal</th>
+                  <th style="width: 220px">Tanggal</th>
+                  <th style="width: 120px">Waktu</th>
+                  <th style="width: 200px">Narasumber</th>
                   <th style="width: 0" aria-hidden="true">ISO</th>
                   <th style="width: 160px" class="text-end">Aksi</th>
                 </tr>

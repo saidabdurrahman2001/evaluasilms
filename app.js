@@ -1,9 +1,5 @@
 /* global window, document */
 
-function uniqSorted(values) {
-  return [...new Set(values.filter(Boolean))].sort((a, b) => a.localeCompare(b));
-}
-
 const DAY_ORDER = ['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY', 'SUNDAY'];
 const MONTH_ORDER = [
   'JANUARY',
@@ -20,6 +16,17 @@ const MONTH_ORDER = [
   'DECEMBER',
 ];
 const MONTH_TO_NUM = Object.fromEntries(MONTH_ORDER.map((m, i) => [m, i + 1]));
+
+const COL = {
+  NO: 0,
+  OPEN_ID: 1,
+  MODULE: 2,
+  DATE: 3,
+  TIME: 4,
+  NARASUMBER: 5,
+  ISO: 6,
+  ACTION: 7,
+};
 
 function buildOption(select, value, label) {
   const opt = document.createElement('option');
@@ -38,35 +45,83 @@ function toISODate(r) {
   return `${y}-${mm}-${dd}`;
 }
 
+function formatTime(r) {
+  const start = String(r.start_time || '').trim();
+  const end = String(r.end_time || '').trim();
+  if (start && end) return `${start} – ${end}`;
+  if (start) return start;
+  if (end) return end;
+  return '—';
+}
+
+function formatNarasumber(r) {
+  return String(r.narasumber || '').trim() || '—';
+}
+
+function sortByNo(a, b) {
+  return Number(a.no) - Number(b.no);
+}
+
 function matchesQuery(row, q) {
   if (!q) return true;
-  const hay = `${row.open_id} ${row.module_name} ${row.date_raw} ${row.day_name} ${row.month} ${row.year}`.toLowerCase();
+  const hay = [
+    row.no,
+    row.open_id,
+    row.module_name,
+    row.date_raw,
+    row.day_name,
+    row.month,
+    row.year,
+    row.start_time,
+    row.end_time,
+    row.narasumber,
+    row.asal_narsum,
+  ]
+    .filter(Boolean)
+    .join(' ')
+    .toLowerCase();
   return hay.includes(q);
 }
 
-function mobileRenderList(data, day, month, query) {
+function parseFlexibleDate(value) {
+  const text = String(value || '').trim();
+  if (!text) return '';
+
+  if (/^\d{4}-\d{2}-\d{2}$/.test(text)) return text;
+
+  const slashMatch = text.match(/^(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{4})$/);
+  if (slashMatch) {
+    const dd = String(slashMatch[1]).padStart(2, '0');
+    const mm = String(slashMatch[2]).padStart(2, '0');
+    return `${slashMatch[3]}-${mm}-${dd}`;
+  }
+
+  return '';
+}
+
+function rowMatchesFilters(row, { day, month, isoDate, query }) {
+  if (day && String(row.day_name || '').toUpperCase() !== day) return false;
+  if (month && String(row.month || '').toUpperCase() !== month) return false;
+  if (isoDate && toISODate(row) !== isoDate) return false;
+  if (!query) return true;
+
+  if (matchesQuery(row, query)) return true;
+
+  const parsedIso = parseFlexibleDate(query);
+  return Boolean(parsedIso && toISODate(row) === parsedIso);
+}
+
+function mobileRenderList(data, filters) {
   const list = document.getElementById('mobileList');
   const shownEl = document.getElementById('mobileShown');
   const totalEl = document.getElementById('mobileTotal');
   if (!list || !shownEl || !totalEl) return;
 
-  const q = String(query || '').trim().toLowerCase();
+  const q = String(filters.query || '').trim().toLowerCase();
   const filtered = data
-    .filter(r => (day ? String(r.day_name || '').toUpperCase() === day : true))
-    .filter(r => (month ? String(r.month || '').toUpperCase() === month : true))
-    .filter(r => matchesQuery(r, q))
+    .filter(r => rowMatchesFilters(r, { ...filters, query: q }))
     .slice()
-    .sort((a, b) => {
-      const da = toISODate(a);
-      const db = toISODate(b);
-      if (da !== db) return da.localeCompare(db);
-
-      const ia = Number(a.open_id);
-      const ib = Number(b.open_id);
-      if (ia !== ib) return ia - ib;
-
-      return String(a.module_name || '').localeCompare(String(b.module_name || ''));
-    });
+    .sort(sortByNo);
 
   totalEl.textContent = String(data.length);
   shownEl.textContent = String(filtered.length);
@@ -86,13 +141,18 @@ function mobileRenderList(data, day, month, query) {
     card.className = 'mobile-card';
 
     const datePretty = r.date_raw || [r.day_name, r.day, r.month, r.year].filter(Boolean).join(' ');
+    const narasumber = formatNarasumber(r);
 
     card.innerHTML = `
       <div class="mobile-meta">
-        <div class="mobile-id">Open ID: ${escapeHtml(r.open_id)}</div>
+        <div class="mobile-id">No. ${escapeHtml(r.no)} · Open ID: ${escapeHtml(r.open_id)}</div>
         <div><span class="badge badge-soft">${escapeHtml(datePretty)}</span></div>
       </div>
       <p class="mobile-title mt-2">${escapeHtml(r.module_name)}</p>
+      <div class="subtle" style="font-size: 12px;">
+        <div>${escapeHtml(formatTime(r))}</div>
+        <div class="mt-1">${narasumber === '—' ? '—' : `Narasumber: ${escapeHtml(narasumber)}`}</div>
+      </div>
       <div class="mobile-actions">
         <a class="btn btn-outline-primary btn-mobile" href="${escapeAttr(r.link)}" target="_blank" rel="noopener noreferrer">
           Buka evaluasi
@@ -105,48 +165,47 @@ function mobileRenderList(data, day, month, query) {
 }
 
 function render() {
-  const data = (window.LMS_SCHEDULE_DATA || []).slice();
+  const data = (window.LMS_SCHEDULE_DATA || []).slice().sort(sortByNo);
   const countEl = document.getElementById('rowCount');
   countEl.textContent = `${data.length.toLocaleString()} sesi`;
 
   const daySelect = document.getElementById('filterDay');
   const monthSelect = document.getElementById('filterMonth');
+  const dateInput = document.getElementById('filterDate');
   const mobileSearch = document.getElementById('mobileSearch');
 
-  // Order days Monday..Sunday
+  const isoDates = data.map(toISODate).filter(Boolean).sort();
+  if (dateInput && isoDates.length) {
+    dateInput.min = isoDates[0];
+    dateInput.max = isoDates[isoDates.length - 1];
+  }
+
   const presentDays = new Set(data.map(r => String(r.day_name || '').toUpperCase()).filter(Boolean));
   DAY_ORDER.filter(d => presentDays.has(d)).forEach(v => buildOption(daySelect, v, v));
 
-  // Order months Jan..Dec
   const presentMonths = new Set(data.map(r => String(r.month || '').toUpperCase()).filter(Boolean));
   MONTH_ORDER.filter(m => presentMonths.has(m)).forEach(v => buildOption(monthSelect, v, v));
 
   const tbody = document.querySelector('#scheduleTable tbody');
   tbody.innerHTML = '';
 
-  // Lock default order: date (oldest -> newest), then Open ID, then module name.
-  data.sort((a, b) => {
-    const da = toISODate(a);
-    const db = toISODate(b);
-    if (da !== db) return da.localeCompare(db);
-
-    const ia = Number(a.open_id);
-    const ib = Number(b.open_id);
-    if (ia !== ib) return ia - ib;
-
-    return String(a.module_name || '').localeCompare(String(b.module_name || ''));
-  });
-
-  for (const r of data) {
-    const tr = document.createElement('tr');
-
+  const rowByIndex = data.map(r => {
     const datePretty = r.date_raw || [r.day_name, r.day, r.month, r.year].filter(Boolean).join(' ');
     const iso = toISODate(r);
+    const narasumber = formatNarasumber(r);
+    return { row: r, datePretty, iso, narasumber };
+  });
+
+  for (const { row: r, datePretty, iso, narasumber } of rowByIndex) {
+    const tr = document.createElement('tr');
 
     tr.innerHTML = `
+      <td class="text-monospace text-muted">${r.no}</td>
       <td class="text-monospace">${r.open_id}</td>
       <td>${escapeHtml(r.module_name)}</td>
       <td><span class="badge badge-soft">${escapeHtml(datePretty)}</span></td>
+      <td class="text-nowrap">${escapeHtml(formatTime(r))}</td>
+      <td>${narasumber === '—' ? '<span class="subtle">—</span>' : escapeHtml(narasumber)}</td>
       <td class="d-none">${escapeHtml(iso)}</td>
       <td class="text-end">
         <a class="btn btn-sm btn-outline-primary link-btn" href="${escapeAttr(r.link)}" target="_blank" rel="noopener noreferrer">
@@ -158,14 +217,28 @@ function render() {
     tbody.appendChild(tr);
   }
 
+  const filterState = {
+    day: '',
+    month: '',
+    isoDate: '',
+    query: '',
+  };
+
+  // eslint-disable-next-line no-undef
+  DataTable.ext.search.push((settings, _data, dataIndex) => {
+    if (settings.nTable.id !== 'scheduleTable') return true;
+    const { row } = rowByIndex[dataIndex];
+    if (!row) return true;
+    return rowMatchesFilters(row, filterState);
+  });
+
   // eslint-disable-next-line no-undef
   const table = new DataTable('#scheduleTable', {
     pageLength: 25,
     lengthMenu: [10, 25, 50, 100],
-    // Disable sorting by clicking headers
     ordering: false,
     autoWidth: false,
-    columnDefs: [{ targets: [3], visible: false, searchable: false }],
+    columnDefs: [{ targets: [COL.ISO], visible: false }],
     dom:
       "<'row align-items-center g-3'<'col-md-6'l><'col-md-6'f>>" +
       "<'row mt-3'<'col-12'tr>>" +
@@ -178,36 +251,62 @@ function render() {
       zeroRecords: 'Tidak ada hasil',
       paginate: { previous: 'Sebelumnya', next: 'Berikutnya' },
     },
+    initComplete() {
+      const api = this.api();
+      const $input = $(api.table().container()).find('.dataTables_filter input');
+      $input.off('input.DT');
+      $input.on('input', applyFilters);
+    },
   });
 
+  function readFilters() {
+    const desktopSearchInput = document.querySelector('#scheduleTable_wrapper .dataTables_filter input');
+    const query = (desktopSearchInput?.value || mobileSearch?.value || '').trim().toLowerCase();
+    filterState.query = query;
+    return {
+      day: daySelect.value,
+      month: monthSelect.value,
+      isoDate: dateInput?.value || '',
+      query,
+    };
+  }
+
   function applyFilters() {
-    const day = daySelect.value;
-    const month = monthSelect.value;
-
-    // Filter date column (index 2) by contains for day/month text.
-    const dateNeedles = [day, month].filter(Boolean).join(' ');
-    table.column(2).search(dateNeedles);
+    filterState.day = daySelect.value;
+    filterState.month = monthSelect.value;
+    filterState.isoDate = dateInput?.value || '';
+    readFilters();
+    table.search('', false);
+    table.columns().search('');
     table.draw();
-
-    mobileRenderList(data, day, month, mobileSearch?.value || '');
+    mobileRenderList(data, filterState);
   }
 
   daySelect.addEventListener('change', applyFilters);
   monthSelect.addEventListener('change', applyFilters);
+  dateInput?.addEventListener('change', applyFilters);
+  dateInput?.addEventListener('input', applyFilters);
   mobileSearch?.addEventListener('input', applyFilters);
 
   document.getElementById('btnReset').addEventListener('click', () => {
     daySelect.value = '';
     monthSelect.value = '';
+    if (dateInput) dateInput.value = '';
     if (mobileSearch) mobileSearch.value = '';
-    table.search('');
+    const desktopSearchInput = document.querySelector('#scheduleTable_wrapper .dataTables_filter input');
+    if (desktopSearchInput) desktopSearchInput.value = '';
+    filterState.day = '';
+    filterState.month = '';
+    filterState.isoDate = '';
+    filterState.query = '';
+    table.search('', false);
     table.columns().search('');
     table.draw();
-    mobileRenderList(data, '', '', '');
+    mobileRenderList(data, filterState);
   });
 
-  // Initial mobile render
-  mobileRenderList(data, daySelect.value, monthSelect.value, mobileSearch?.value || '');
+  mobileRenderList(data, filterState);
+
 }
 
 function escapeHtml(s) {
@@ -224,4 +323,3 @@ function escapeAttr(s) {
 }
 
 document.addEventListener('DOMContentLoaded', render);
-

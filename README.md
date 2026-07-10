@@ -1,10 +1,10 @@
 # LMS Schedule (Static)
 
-Website statis untuk menampilkan `lms_schedule.csv` dalam bentuk tabel yang bisa dicari (search), sort, dan filter, plus tombol **Buka evaluasi** per baris.
+Website statis untuk menampilkan `lms_schedule.xlsx` dalam bentuk tabel yang bisa dicari (search), filter, plus tombol **Buka evaluasi** per baris. Urutan mengikuti kolom **No** dari Excel, dengan **waktu** dan **narasumber** dari halaman Rundown BI LMS.
 
 ## Cara pakai (lokal)
 
-1. Generate `data.js` dari CSV:
+1. Generate `data.js` dari Excel + HTML Rundown BI LMS:
 
 ```bash
 python build_web_data.py
@@ -22,7 +22,7 @@ python -m http.server 5173
 
 ## Update data
 
-Kalau `lms_schedule.csv` berubah, jalankan lagi:
+Kalau `lms_schedule.xlsx` atau file simpanan halaman BI LMS (`*BI LMS.html`) berubah, jalankan lagi:
 
 ```bash
 python build_web_data.py
